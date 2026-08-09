@@ -23,6 +23,7 @@ public class UserController {
                         .name(user.getName())
                         .email(user.getEmail())
                         .avatarUrl(user.getAvatarUrl())
+                        .role(user.getRole().name())
                         .build())
                 .orElseThrow(() -> new IllegalStateException("Not authenticated"));
     }

@@ -1,6 +1,10 @@
 package com.codenix.backend.service;
 
 import com.codenix.backend.entity.Difficulty;
+import com.codenix.backend.entity.Mcq;
+import com.codenix.backend.entity.McqStatus;
+import com.codenix.backend.repository.McqRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,7 +12,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ContentService {
+
+    private final McqRepository mcqRepository;
 
     private final List<Map<String, Object>> lessons = List.of(
             Map.of("id", "intro-c", "title", "Introduction to C", "topic", "Basics"),
@@ -33,11 +40,6 @@ public class ContentService {
             Map.of("id", "problem-5", "title", "Palindrome", "difficulty", Difficulty.MEDIUM.name(), "topic", "Loops")
     );
 
-    private final List<Map<String, Object>> quizzes = List.of(
-            Map.of("id", "q1", "topic", "basics", "question", "Entry function in C?", "options", List.of("main", "start", "run", "init"), "correct", 0),
-            Map.of("id", "q2", "topic", "basics", "question", "Valid format for integer in printf?", "options", List.of("%f", "%d", "%c", "%s"), "correct", 1)
-    );
-
     public List<Map<String, Object>> lessons() {
         return lessons;
     }
@@ -55,13 +57,29 @@ public class ContentService {
     }
 
     public List<Map<String, Object>> quizzesByTopic(String topic) {
-        return quizzes.stream().filter(item -> item.get("topic").equals(topic)).toList();
+        return mcqRepository.findByStatusAndTopicOrderById(McqStatus.PUBLISHED, topic).stream()
+                .map(this::quizMap)
+                .toList();
     }
 
     public List<Integer> quizAnswerKey(String quizId) {
-        return quizzes.stream()
-                .filter(item -> item.get("id").equals(quizId))
-                .map(item -> (Integer) item.get("correct"))
-                .toList();
+        try {
+            return mcqRepository.findById(Long.parseLong(quizId))
+                    .filter(mcq -> mcq.getStatus() == McqStatus.PUBLISHED)
+                    .map(mcq -> List.of(mcq.getCorrectAnswer()))
+                    .orElseGet(List::of);
+        } catch (NumberFormatException ex) {
+            return List.of();
+        }
+    }
+
+    private Map<String, Object> quizMap(Mcq mcq) {
+        return Map.of(
+                "id", String.valueOf(mcq.getId()),
+                "topic", mcq.getTopic(),
+                "question", mcq.getQuestion(),
+                "options", List.of(mcq.getOptionA(), mcq.getOptionB(), mcq.getOptionC(), mcq.getOptionD()),
+                "correct", mcq.getCorrectAnswer()
+        );
     }
 }

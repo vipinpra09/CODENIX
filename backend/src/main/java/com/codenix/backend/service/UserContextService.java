@@ -32,6 +32,13 @@ public class UserContextService {
         return Optional.empty();
     }
 
+    public String getCurrentUserEmail(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
+            return oAuth2User.getAttribute("email");
+        }
+        return null;
+    }
+
     private AppUser upsertFromOAuth(String email, String googleId, Map<String, Object> attributes) {
         if (email == null || googleId == null) {
             throw new IllegalStateException("Invalid OAuth principal");

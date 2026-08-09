@@ -23,6 +23,7 @@ public class AuthController {
                         .name(user.getName())
                         .email(user.getEmail())
                         .avatarUrl(user.getAvatarUrl())
+                        .role(user.getRole().name())
                         .build())
                 .orElse(null);
     }

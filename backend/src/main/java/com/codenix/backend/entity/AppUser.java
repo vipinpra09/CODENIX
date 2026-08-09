@@ -31,6 +31,10 @@ public class AppUser {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.STUDENT;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
